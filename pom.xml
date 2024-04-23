@@ -30,7 +30,7 @@
   <groupId>org.apache.pdfbox</groupId>
   <artifactId>pdfbox-parent</artifactId>
   <packaging>pom</packaging>
-  <version>3.0.2</version>
+  <version>3.0.2-ZOLA</version>
 
   <name>Apache PDFBox parent</name>
   <inceptionYear>2002</inceptionYear>
