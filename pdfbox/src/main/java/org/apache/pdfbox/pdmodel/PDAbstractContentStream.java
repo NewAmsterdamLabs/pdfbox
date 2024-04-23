@@ -16,28 +16,9 @@
  */
 package org.apache.pdfbox.pdmodel;
 
-import java.awt.Color;
-import java.awt.geom.AffineTransform;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.NumberFormat;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.fontbox.ttf.CmapLookup;
-import org.apache.fontbox.ttf.gsub.CompoundCharacterTokenizer;
 import org.apache.fontbox.ttf.gsub.GsubWorker;
 import org.apache.fontbox.ttf.gsub.GsubWorkerFactory;
 import org.apache.fontbox.ttf.model.GsubData;
@@ -68,6 +49,24 @@ import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.NumberFormatUtil;
 import org.apache.pdfbox.util.StringUtil;
+
+import java.awt.Color;
+import java.awt.geom.AffineTransform;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides the ability to write to a content stream.
@@ -273,7 +272,7 @@ abstract class PDAbstractContentStream implements Closeable
      * Outputs a string using the correct encoding and subsetting as required.
      *
      * @param text The Unicode text to show.
-     * 
+     *
      * @throws IOException If an io exception occurs.
      */
     protected void showTextInternal(String text) throws IOException
@@ -1028,7 +1027,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Stroke the path.
-     * 
+     *
      * @throws IOException If the content stream could not be written
      * @throws IllegalStateException If the method was called within a text block.
      */
@@ -1043,7 +1042,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Close and stroke the path.
-     * 
+     *
      * @throws IOException If the content stream could not be written
      * @throws IllegalStateException If the method was called within a text block.
      */
@@ -1200,7 +1199,7 @@ abstract class PDAbstractContentStream implements Closeable
             throw new IllegalStateException("Error: clip is not allowed within a text block.");
         }
         writeOperator(OperatorName.CLIP_NON_ZERO);
-        
+
         // end path without filling or stroking
         writeOperator(OperatorName.ENDPATH);
     }
@@ -1218,7 +1217,7 @@ abstract class PDAbstractContentStream implements Closeable
             throw new IllegalStateException("Error: clipEvenOdd is not allowed within a text block.");
         }
         writeOperator(OperatorName.CLIP_EVEN_ODD);
-        
+
         // end path without filling or stroking
         writeOperator(OperatorName.ENDPATH);
     }
@@ -1349,7 +1348,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Set an extended graphics state.
-     * 
+     *
      * @param state The extended graphics state to be added to the content stream
      * @throws IOException If the content stream could not be written.
      */
@@ -1363,7 +1362,7 @@ abstract class PDAbstractContentStream implements Closeable
      * Write a comment line.
      *
      * @param comment the comment to be added to the content stream
-     * 
+     *
      * @throws IOException If the content stream could not be written.
      * @throws IllegalArgumentException If the comment contains a newline. This is not allowed, because the next line
      * could be ordinary PDF content.
@@ -1381,9 +1380,9 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Writes a real number to the content stream.
-     * 
+     *
      * @param real the real number to be added to the content stream
-     * 
+     *
      * @throws IOException If the underlying stream has a problem being written to.
      * @throws IllegalArgumentException if the parameter is not a finite number
      */
@@ -1409,7 +1408,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Writes an integer number to the content stream.
-     * 
+     *
      * @param integer the integer to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1421,7 +1420,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Writes a COSName to the content stream.
-     * 
+     *
      * @param name the name to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1433,7 +1432,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Writes a string to the content stream as ASCII.
-     * 
+     *
      * @param text the text to be added to the content stream followed by a newline
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1445,7 +1444,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Writes a string to the content stream as ASCII.
-     * 
+     *
      * @param text the text to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1456,7 +1455,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Writes a newline to the content stream as ASCII.
-     * 
+     *
      * @throws IOException If the underlying stream has a problem being written to.
      */
     protected void writeLine() throws IOException
@@ -1466,7 +1465,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Writes binary data to the content stream.
-     * 
+     *
      * @param data as byte formatted to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1477,7 +1476,7 @@ abstract class PDAbstractContentStream implements Closeable
 
     /**
      * Writes an AffineTransform to the content stream as an array.
-     * 
+     *
      * @param transform AffineTransfrom to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1618,7 +1617,7 @@ abstract class PDAbstractContentStream implements Closeable
                                  Set<Integer> glyphIds, PDType0Font font, String text) throws IOException
     {
         // break the entire chunk of text into words by splitting it with space
-        List<String> words = new CompoundCharacterTokenizer(StringUtil.PATTERN_SPACE).tokenize(text);
+        String[] words = StringUtil.tokenizeOnSpace(text);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 

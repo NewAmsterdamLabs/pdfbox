@@ -36,6 +36,8 @@ public enum Language
     DEVANAGARI(new String[] { "dev2", "deva" }),
     GUJARATI(new String[] { "gjr2", "gujr" }),
     LATIN(new String[] { "latn" }),
+    // Added for Zola
+    DFLT(new String[] { "DFLT" }),
 
     /**
      * An entry explicitly denoting the absence of any concrete language. May be useful when no actual glyph
@@ -56,7 +58,7 @@ public enum Language
      * ScriptNames form the basis of identification of the language. This method gets the ScriptNames that the given
      * Language supports, in the order of preference, Index 0 being the most preferred. These names should match the
      * script record in the GSUB system.
-     * 
+     *
      * @return an array containing all supported languages
      */
     public String[] getScriptNames()

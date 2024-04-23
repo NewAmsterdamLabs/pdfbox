@@ -36,7 +36,7 @@ import org.apache.fontbox.util.BoundingBox;
 
 /**
  * A TrueType font file.
- * 
+ *
  * @author Ben Litchfield
  */
 public class TrueTypeFont implements FontBoxFont, Closeable
@@ -47,24 +47,25 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     private float version;
     private int numberOfGlyphs = -1;
     private int unitsPerEm = -1;
+    private boolean enableGsub = true;
     protected final Map<String,TTFTable> tables = new HashMap<>();
     private final TTFDataStream data;
     private volatile Map<String, Integer> postScriptNames;
-    
+
     private final Object lockReadtable = new Object();
     private final Object lockPSNames = new Object();
     private final List<String> enabledGsubFeatures = new ArrayList<>();
 
     /**
      * Constructor.  Clients should use the TTFParser to create a new TrueTypeFont object.
-     * 
+     *
      * @param fontData The font data.
      */
     TrueTypeFont(TTFDataStream fontData)
     {
         data = fontData;
     }
-    
+
     @Override
     public void close() throws IOException
     {
@@ -74,7 +75,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     /**
      * @return Returns the version.
      */
-    public float getVersion() 
+    public float getVersion()
     {
         return version;
     }
@@ -87,20 +88,35 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         version = versionValue;
     }
-    
+
+    /**
+     * @return true if the GSUB table is enabled, false otherwise.
+     */
+    public boolean isEnableGsub() {
+        return enableGsub;
+    }
+
+    /**
+     * Enable or disable the GSUB table processing. This is enabled by default.
+     * @param enableGsub False to disable GSUB table processing.
+     */
+    public void setEnableGsub(boolean enableGsub) {
+        this.enableGsub = enableGsub;
+    }
+
     /**
      * Add a table definition. Package-private, used by TTFParser only.
-     * 
+     *
      * @param table The table to add.
      */
     void addTable( TTFTable table )
     {
         tables.put( table.getTag(), table );
     }
-    
+
     /**
      * Get all of the tables.
-     * 
+     *
      * @return All of the tables.
      */
     public Collection<TTFTable> getTables()
@@ -120,10 +136,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Returns the raw bytes of the given table.
-     * 
+     *
      * @param table the table to read.
      * @return the raw bytes of the given table
-     * 
+     *
      * @throws IOException if there was an error accessing the table.
      */
     public byte[] getTableBytes(TTFTable table) throws IOException
@@ -145,7 +161,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * This will get the table for the given tag.
-     * 
+     *
      * @param tag the name of the table to be returned
      * @return The table with the given tag.
      * @throws IOException if there was an error reading the table.
@@ -162,7 +178,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * This will get the naming table for the true type font.
-     * 
+     *
      * @return The naming table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -170,10 +186,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (NamingTable) getTable(NamingTable.TAG);
     }
-    
+
     /**
      * Get the postscript table for this TTF.
-     * 
+     *
      * @return The postscript table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -181,10 +197,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (PostScriptTable) getTable(PostScriptTable.TAG);
     }
-    
+
     /**
      * Get the OS/2 table for this TTF.
-     * 
+     *
      * @return The OS/2 table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -195,7 +211,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Get the maxp table for this TTF.
-     * 
+     *
      * @return The maxp table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -203,10 +219,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (MaximumProfileTable) getTable(MaximumProfileTable.TAG);
     }
-    
+
     /**
      * Get the head table for this TTF.
-     * 
+     *
      * @return The head table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -214,10 +230,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (HeaderTable) getTable(HeaderTable.TAG);
     }
-    
+
     /**
      * Get the hhea table for this TTF.
-     * 
+     *
      * @return The hhea table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -225,10 +241,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (HorizontalHeaderTable) getTable(HorizontalHeaderTable.TAG);
     }
-    
+
     /**
      * Get the hmtx table for this TTF.
-     * 
+     *
      * @return The hmtx table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -236,10 +252,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (HorizontalMetricsTable) getTable(HorizontalMetricsTable.TAG);
     }
-    
+
     /**
      * Get the loca table for this TTF.
-     * 
+     *
      * @return The loca table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -247,10 +263,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (IndexToLocationTable) getTable(IndexToLocationTable.TAG);
     }
-    
+
     /**
      * Get the glyf table for this TTF.
-     * 
+     *
      * @return The glyf table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -258,10 +274,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (GlyphTable) getTable(GlyphTable.TAG);
     }
-    
+
     /**
      * Get the "cmap" table for this TTF.
-     * 
+     *
      * @return The "cmap" table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -269,10 +285,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (CmapTable) getTable(CmapTable.TAG);
     }
-    
+
     /**
      * Get the vhea table for this TTF.
-     * 
+     *
      * @return The vhea table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -280,10 +296,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (VerticalHeaderTable) getTable(VerticalHeaderTable.TAG);
     }
-    
+
     /**
      * Get the vmtx table for this TTF.
-     * 
+     *
      * @return The vmtx table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -291,10 +307,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (VerticalMetricsTable) getTable(VerticalMetricsTable.TAG);
     }
-    
+
     /**
      * Get the VORG table for this TTF.
-     * 
+     *
      * @return The VORG table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -302,10 +318,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     {
         return (VerticalOriginTable) getTable(VerticalOriginTable.TAG);
     }
-    
+
     /**
      * Get the "kern" table for this TTF.
-     * 
+     *
      * @return The "kern" table or null if it doesn't exist.
      * @throws IOException if there was an error reading the table.
      */
@@ -327,16 +343,16 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Get the data of the TrueType Font
-     * program representing the stream used to build this 
+     * program representing the stream used to build this
      * object (normally from the TTFParser object).
-     * 
+     *
      * @return COSStream TrueType font program stream
-     * 
+     *
      * @throws IOException If there is an error getting the font data.
      */
-    public InputStream getOriginalData() throws IOException 
+    public InputStream getOriginalData() throws IOException
     {
-       return data.getOriginalData(); 
+       return data.getOriginalData();
     }
 
     /**
@@ -352,9 +368,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Read the given table if necessary. Package-private, used by TTFParser only.
-     * 
+     *
      * @param table the table to be initialized
-     * 
+     *
      * @throws IOException if there was an error reading the table.
      */
     void readTable(TTFTable table) throws IOException
@@ -369,7 +385,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Returns the number of glyphs (MaximumProfile.numGlyphs).
-     * 
+     *
      * @return the number of glyphs
      * @throws IOException if there was an error reading the table.
      */
@@ -393,7 +409,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Returns the units per EM (Header.unitsPerEm).
-     * 
+     *
      * @return units per EM
      * @throws IOException if there was an error reading the table.
      */
@@ -417,7 +433,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Returns the width for the given GID.
-     * 
+     *
      * @param gid the GID
      * @return the width
      * @throws IOException if there was an error reading the metrics table.
@@ -438,7 +454,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Returns the height for the given GID.
-     * 
+     *
      * @param gid the GID
      * @return the height
      * @throws IOException if there was an error reading the metrics table.
@@ -509,7 +525,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * The returned cmap will perform glyph substitution.
      *
      * @return cmap to perform glyph substitution
-     * 
+     *
      * @throws IOException if the font could not be read
      */
     public CmapLookup getUnicodeCmapLookup() throws IOException
@@ -525,7 +541,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      *
      * @param isStrict False if we allow falling back to any cmap, even if it's not Unicode.
      * @return cmap to perform glyph substitution
-     * 
+     *
      * @throws IOException if the font could not be read, or there is no Unicode cmap
      */
     public CmapLookup getUnicodeCmapLookup(boolean isStrict) throws IOException
@@ -599,10 +615,10 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Returns the GID for the given PostScript name, if the "post" table is present.
-     * 
+     *
      * @param name the PostScript name.
      * @return the GID for the given PostScript name
-     * 
+     *
      * @throws IOException if the font data could not be read
      */
     public int nameToGID(String name) throws IOException
@@ -637,14 +653,19 @@ public class TrueTypeFont implements FontBoxFont, Closeable
 
     /**
      * Returns the GSubData of the GlyphSubstitutionTable if present.
-     * 
+     *
      * @return the GSubData of the GlyphSubstitutionTable or {@link GsubData#NO_DATA_FOUND} if either no GSUB data is
      * available or its scripts are not supported
-     * 
+     *
      * @throws IOException if the font data could not be read
      */
     public GsubData getGsubData() throws IOException
     {
+        if (!enableGsub)
+        {
+            return GsubData.NO_DATA_FOUND;
+        }
+
         GlyphSubstitutionTable table = getGsub();
         if (table == null)
         {
@@ -687,7 +708,7 @@ public class TrueTypeFont implements FontBoxFont, Closeable
         }
         return -1;
     }
-    
+
     @Override
     public GeneralPath getPath(String name) throws IOException
     {

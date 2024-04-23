@@ -24,35 +24,35 @@ import org.apache.fontbox.ttf.model.GsubData;
 import org.apache.fontbox.ttf.model.Language;
 
 /**
+ * This class has been copied from Apache PDFBox 3.0.2 and modified to support the GSUB lookup types 3:
+ * <a href="https://learn.microsoft.com/en-us/typography/opentype/spec/chapter2#lookup-table">...</a>
+ * <p>
+ * We added the support for DFLT, which in Zola's case is the Latin language.
  * Gets a {@link Language} specific instance of a {@link GsubWorker}
- * 
- * @author Palash Ray
  *
+ * @author Palash Ray
  */
-public class GsubWorkerFactory
-{
+public class GsubWorkerFactory {
     private static final Log LOG = LogFactory.getLog(GsubWorkerFactory.class);
 
-    public GsubWorker getGsubWorker(CmapLookup cmapLookup, GsubData gsubData)
-    {
+    public GsubWorker getGsubWorker(CmapLookup cmapLookup, GsubData gsubData) {
         //TODO this needs to be redesigned / improved because if a font supports several languages,
         // it will choose one of them and maybe not the one expected.
-        if (LOG.isDebugEnabled())
-        {
+        if (LOG.isDebugEnabled()) {
             LOG.debug("Language: " + gsubData.getLanguage());
         }
-        switch (gsubData.getLanguage())
-        {
-        case BENGALI:
-            return new GsubWorkerForBengali(cmapLookup, gsubData);
-        case DEVANAGARI:
-            return new GsubWorkerForDevanagari(cmapLookup, gsubData);
-        case GUJARATI:
-            return new GsubWorkerForGujarati(cmapLookup, gsubData);
-        case LATIN:
-            return new GsubWorkerForLatin(cmapLookup, gsubData);
-        default:
-            return new DefaultGsubWorker();
+        switch (gsubData.getLanguage()) {
+            case BENGALI:
+                return new GsubWorkerForBengali(cmapLookup, gsubData);
+            case DEVANAGARI:
+                return new GsubWorkerForDevanagari(cmapLookup, gsubData);
+            case GUJARATI:
+                return new GsubWorkerForGujarati(cmapLookup, gsubData);
+            case LATIN:
+            case DFLT:
+                return new GsubWorkerForLatin(cmapLookup, gsubData);
+            default:
+                return new DefaultGsubWorker();
         }
     }
 
