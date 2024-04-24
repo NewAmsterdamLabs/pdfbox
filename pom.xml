@@ -51,6 +51,20 @@
       <url>https://svn.apache.org/viewvc/pdfbox/tags/3.0.2</url>
   </scm>
 
+  <!-- distribute to Zola internal repo -->
+    <distributionManagement>
+        <repository>
+            <id>deployment</id>
+            <name>Internal Releases</name>
+            <url>https://nexus3.zola.com/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>deployment</id>
+            <name>Internal Releases</name>
+            <url>https://nexus3.zola.com/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
