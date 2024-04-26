@@ -18,137 +18,121 @@
 package org.apache.fontbox.ttf.gsub;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Takes in the given text having compound-glyphs to substitute, and splits it into chunks consisting of parts that
  * should be substituted and the ones that can be processed normally.
- *
+ * 
  * @author Palash Ray
+ * 
  */
-public class CompoundCharacterTokenizer {
+public class CompoundCharacterTokenizer
+{
     private static final String GLYPH_ID_SEPARATOR = "_";
-    private final List<Pattern> regexExpressions;
-
+    private final Pattern regexExpression;
 
     /**
      * Constructor. Calls getRegexFromTokens which returns strings like
      * (_79_99_)|(_80_99_)|(_92_99_) and creates a regexp assigned to regexExpression. See the code
      * in GlyphArraySplitterRegexImpl on how these strings were created.
+     * <p>
+     * It is assumed the compound words are sorted in descending order of length.
      *
      * @param compoundWords A set of strings like _79_99_, _80_99_ or _92_99_ .
      */
-    public CompoundCharacterTokenizer(Set<String> compoundWords) {
+    public CompoundCharacterTokenizer(Set<String> compoundWords)
+    {
         validateCompoundWords(compoundWords);
-        String tokens = getRegexFromTokens(compoundWords);
-        regexExpressions = Stream.of(tokens.split("\\|"))
-                .map(token -> "^" + token) // We want to match the token at the beginning of the input text
-                .map(Pattern::compile).collect(Collectors.toList());
+        regexExpression = Pattern.compile(getRegexFromTokens(compoundWords));
     }
 
-    private void validateCompoundWords(Set<String> compoundWords) {
-        if (compoundWords == null || compoundWords.isEmpty()) {
+    public CompoundCharacterTokenizer(Pattern pattern)
+    {
+        regexExpression = pattern;
+    }
+
+    /**
+     * Validate the compound words. They should not be null or empty and should start and end with
+     * the GLYPH_ID_SEPARATOR
+     */
+    private void validateCompoundWords(Set<String> compoundWords)
+    {
+        if (compoundWords == null || compoundWords.isEmpty())
+        {
             throw new IllegalArgumentException("Compound words cannot be null or empty");
         }
 
         // Ensure all word are starting and ending with the GLYPH_ID_SEPARATOR
-        compoundWords.forEach(word -> {
-            if (!word.startsWith(GLYPH_ID_SEPARATOR) || !word.endsWith(GLYPH_ID_SEPARATOR)) {
-                throw new IllegalArgumentException("Compound words should start and end with " + GLYPH_ID_SEPARATOR);
+        compoundWords.forEach(word ->
+        {
+            if (!word.startsWith(GLYPH_ID_SEPARATOR) || !word.endsWith(GLYPH_ID_SEPARATOR))
+            {
+                throw new IllegalArgumentException(
+                        "Compound words should start and end with " + GLYPH_ID_SEPARATOR);
             }
         });
     }
 
     /**
-     * For each regex expression, check if we have a match, if we do, we remove that match from the input text and continue until we processed the whole input text
+     * Tokenize a string into tokens.
+     *
+     * @param text A string like "_66_71_71_74_79_70_"
+     * @return A list of tokens like "_66_", "_71_71_", "74_79_70_". The "_" is sometimes missing at
+     * the beginning or end, this has to be cleaned by the caller.
      */
-    public List<String> tokenize(String text) {
-        String inputText = text;
+    public List<String> tokenize(String text)
+    {
         List<String> tokens = new ArrayList<>();
-        if (inputText == null) {
-            return tokens;
-        }
 
-        StringBuilder currentTokens = new StringBuilder();
-        while (!inputText.isEmpty()) {
-            boolean foundMatch = false;
-            for (Pattern regexExpression : regexExpressions) {
-                Matcher regexMatcher = regexExpression.matcher(inputText);
-                while (regexMatcher.find()) {
-                    // If we found a match for that group, we add the text before the match, the match itself
-                    // Then we updated the input text to remove the match
-                    foundMatch = true;
-                    tokens.add(appendGlyphSeparatorIfMissing(prependGlyphSeparatorIfMissing(currentTokens.toString())));
-                    currentTokens = new StringBuilder();
+        Matcher regexMatcher = regexExpression.matcher(text);
 
-                    int startIndex = regexMatcher.start();
-                    if (startIndex > 0) {
-                        tokens.add(inputText.substring(0, startIndex));
-                    }
-                    tokens.add(regexMatcher.group());
-                    inputText = getRemainingText(inputText, regexMatcher.end());
-                }
+        int lastIndexOfPrevMatch = 0;
+
+        while (regexMatcher.find(lastIndexOfPrevMatch)) // this is where the magic happens:
+                                    // the regexp is used to find a matching pattern for substitution
+        {
+            int beginIndexOfNextMatch = regexMatcher.start();
+
+            String prevToken = text.substring(lastIndexOfPrevMatch, beginIndexOfNextMatch);
+
+            if (!prevToken.isEmpty())
+            {
+                tokens.add(prevToken);
             }
 
-            // If we haven't found any match, we add the first glyph to the tokens and move to the next set of letters
-            if (!foundMatch) {
-                int endIndex = inputText.indexOf(GLYPH_ID_SEPARATOR, 1);
-                if (endIndex == -1) {
-                    endIndex = inputText.length();
-                }
-                String token = inputText.substring(0, endIndex);
-                currentTokens.append(token);
-                inputText = getRemainingText(inputText, endIndex);
+            String currentMatch = regexMatcher.group();
+
+            tokens.add(currentMatch);
+
+            lastIndexOfPrevMatch = regexMatcher.end();
+            if (lastIndexOfPrevMatch < text.length() && text.charAt(lastIndexOfPrevMatch) != '_')
+            {
+                // beause it is sometimes positioned after the "_", but it should be positioned
+                // before the "_"
+                --lastIndexOfPrevMatch;
             }
         }
 
-        if (currentTokens.length() > 0) {
-            tokens.add(appendGlyphSeparatorIfMissing(prependGlyphSeparatorIfMissing(currentTokens.toString())));
+        String tail = text.substring(lastIndexOfPrevMatch);
+
+        if (!tail.isEmpty())
+        {
+            tokens.add(tail);
         }
 
-        return tokens.stream()
-                .filter(token -> !token.isEmpty())
-                .filter(token -> !GLYPH_ID_SEPARATOR.equals(token))
-                .collect(Collectors.toList());
+        return tokens;
     }
 
-    private String getRemainingText(String inputText, int endIndex) {
-        inputText = inputText.substring(endIndex);
-
-        if (!inputText.isEmpty()) {
-            // Make sure we keep the _ pattern at the beginning and end of the input text
-            inputText = appendGlyphSeparatorIfMissing(prependGlyphSeparatorIfMissing(inputText));
-        }
-        return inputText;
-    }
-
-    private String getRegexFromTokens(Set<String> compoundWords) {
+    private String getRegexFromTokens(Set<String> compoundWords)
+    {
         StringJoiner sj = new StringJoiner(")|(", "(", ")");
         compoundWords.forEach(sj::add);
         return sj.toString();
-    }
-
-    private String appendGlyphSeparatorIfMissing(final String str) {
-        if (str == null || str.endsWith(CompoundCharacterTokenizer.GLYPH_ID_SEPARATOR)) {
-            return str;
-        }
-
-        return str + CompoundCharacterTokenizer.GLYPH_ID_SEPARATOR;
-    }
-
-    private String prependGlyphSeparatorIfMissing(final String str) {
-        if (str == null || str.startsWith(CompoundCharacterTokenizer.GLYPH_ID_SEPARATOR)) {
-            return str;
-        }
-
-        return CompoundCharacterTokenizer.GLYPH_ID_SEPARATOR + str;
     }
 
 }
