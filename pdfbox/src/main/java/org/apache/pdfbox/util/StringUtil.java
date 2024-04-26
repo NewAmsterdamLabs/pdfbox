@@ -28,9 +28,15 @@ public final class StringUtil
         return PATTERN_SPACE.split(s);
     }
 
+    /**
+     * Split at spaces but keep them
+     *
+     * @param s
+     * @return
+     */
     public static String[] tokenizeOnSpace(String s)
     {
-        return Arrays.stream(s.split("(?<=" + StringUtil.PATTERN_SPACE + ")|(?=" + StringUtil.PATTERN_SPACE+ ")")) // Split at spaces but keep them
+        return Arrays.stream(s.split("(?<=" + StringUtil.PATTERN_SPACE + ")|(?=" + StringUtil.PATTERN_SPACE + ")"))
                 .toArray(String[]::new);
     }
 }
