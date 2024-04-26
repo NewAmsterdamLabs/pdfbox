@@ -17,33 +17,66 @@
 
 package org.apache.fontbox.ttf.gsub;
 
-import org.apache.fontbox.ttf.CmapLookup;
-import org.apache.fontbox.ttf.OTFParser;
-import org.apache.fontbox.ttf.TrueTypeFont;
-import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
-import org.junit.jupiter.api.Test;
-
+import java.io.File;
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.fontbox.ttf.CmapLookup;
+import org.apache.fontbox.ttf.OTFParser;
+import org.apache.fontbox.ttf.TTFParser;
+import org.apache.fontbox.ttf.TrueTypeFont;
+import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 
 /**
+ *
  * @author Tilman Hausherr
  */
-class GsubWorkerForLatinTest {
-
-    private static final String LIBERATION_SANS_TTF =
-            "src/test/resources/ttf/Foglihtenno07-e9wz3.otf";
-
+class GsubWorkerForLatinTest
+{
     @Test
-    void testApplyLigatures() throws IOException {
+    void testApplyLigaturesCalibri() throws IOException
+    {
+        File file = new File("c:/windows/fonts/calibri.ttf");
+        Assumptions.assumeTrue(file.exists(), "calibri ligature test skipped");
+
         CmapLookup cmapLookup;
         GsubWorker gsubWorkerForLatin;
-        try (TrueTypeFont ttf = new OTFParser().parse(new RandomAccessReadBufferedFile(LIBERATION_SANS_TTF))) {
+        try (TrueTypeFont ttf = new TTFParser().parse(new RandomAccessReadBufferedFile(file)))
+        {
+            cmapLookup = ttf.getUnicodeCmapLookup();
+            gsubWorkerForLatin = new GsubWorkerFactory().getGsubWorker(cmapLookup, ttf.getGsubData());
+        }
+
+        assertEquals(Arrays.asList(286, 299, 286, 272, 415, 448, 286),
+                gsubWorkerForLatin.applyTransforms(getGlyphIds("effective", cmapLookup)));
+        assertEquals(Arrays.asList(258, 427, 410, 437, 282, 286), 
+                gsubWorkerForLatin.applyTransforms(getGlyphIds("attitude", cmapLookup)));
+        assertEquals(Arrays.asList(258, 312, 367, 349, 258, 410, 286),
+                gsubWorkerForLatin.applyTransforms(getGlyphIds("affiliate", cmapLookup)));
+        assertEquals(Arrays.asList(302, 367, 373),
+                gsubWorkerForLatin.applyTransforms(getGlyphIds("film", cmapLookup)));
+        assertEquals(Arrays.asList(327, 381, 258, 410),
+                gsubWorkerForLatin.applyTransforms(getGlyphIds("float", cmapLookup)));
+        assertEquals(Arrays.asList(393, 367, 258, 414, 381, 396, 373),
+                gsubWorkerForLatin.applyTransforms(getGlyphIds("platform", cmapLookup)));
+    }
+
+    @Test
+    void testApplyLigaturesFoglihtenNo07() throws IOException
+    {
+        CmapLookup cmapLookup;
+        GsubWorker gsubWorkerForLatin;
+        try (TrueTypeFont ttf = new OTFParser().parse(
+                new RandomAccessReadBufferedFile("src/test/resources/otf/FoglihtenNo07.otf")))
+        {
             cmapLookup = ttf.getUnicodeCmapLookup();
             gsubWorkerForLatin = new GsubWorkerFactory().getGsubWorker(cmapLookup, ttf.getGsubData());
         }
@@ -62,10 +95,12 @@ class GsubWorkerForLatinTest {
                 gsubWorkerForLatin.applyTransforms(getGlyphIds("platform", cmapLookup)));
     }
 
-    private List<Integer> getGlyphIds(String word, CmapLookup cmapLookup) {
+    private List<Integer> getGlyphIds(String word, CmapLookup cmapLookup)
+    {
         List<Integer> originalGlyphIds = new ArrayList<>();
 
-        for (char unicodeChar : word.toCharArray()) {
+        for (char unicodeChar : word.toCharArray())
+        {
             int glyphId = cmapLookup.getGlyphId(unicodeChar);
             assertTrue(glyphId > 0);
             originalGlyphIds.add(glyphId);
