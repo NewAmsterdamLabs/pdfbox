@@ -19,6 +19,12 @@ package org.apache.fontbox.ttf.gsub;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.fontbox.ttf.model.GsubData;
 import org.apache.fontbox.ttf.model.Language;
 import org.apache.fontbox.ttf.model.MapBackedGsubData;
@@ -269,14 +275,14 @@ public class GlyphSubstitutionDataExtractor
         for (int i = 0; i < coverageTable.getSize(); i++) {
             int coverageGlyphId = coverageTable.getGlyphId(i);
             SequenceTable sequenceTable = multipleSubstFormat1Subtable.getSequenceTables()[i];
-            //TODO List.Of and Arrays.asList didn't work?!
-            List<Integer> list = new ArrayList<>();
-            for (int id : sequenceTable.getSubstituteGlyphIDs())
+            int[] substituteGlyphIDArray = sequenceTable.getSubstituteGlyphIDs();
+            List<Integer> substituteGlyphIDList = new ArrayList<>(substituteGlyphIDArray.length);
+            for (int id : substituteGlyphIDArray)
             {
-                list.add(id);
+                substituteGlyphIDList.add(id);
             }
             putNewSubstitutionEntry(glyphSubstitutionMap,
-                    list,
+                    substituteGlyphIDList,
                     Collections.singletonList(coverageGlyphId));
         }
     }
