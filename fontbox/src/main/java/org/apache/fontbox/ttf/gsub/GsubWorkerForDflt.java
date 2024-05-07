@@ -114,8 +114,8 @@ public class GsubWorkerForDflt implements GsubWorker
             if (scriptFeature.canReplaceGlyphs(chunk))
             {
                 // gsub system kicks in, you get the glyphId directly
-                Integer replacementForGlyphs = scriptFeature.getReplacementForGlyphs(chunk);
-                gsubProcessedGlyphs.add(replacementForGlyphs);
+                List<Integer> replacementForGlyphs = scriptFeature.getReplacementForGlyphs(chunk);
+                gsubProcessedGlyphs.addAll(replacementForGlyphs);
             }
             else
             {

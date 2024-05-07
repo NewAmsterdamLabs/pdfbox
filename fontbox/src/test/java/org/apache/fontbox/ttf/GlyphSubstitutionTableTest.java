@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -76,7 +77,7 @@ class GlyphSubstitutionTableTest
         for (String featureName : EXPECTED_FEATURE_NAMES)
         {
             System.out.println("******* Testing feature: " + featureName);
-            Map<List<Integer>, Integer> expectedGsubTableRawData = getExpectedGsubTableRawData(
+            Map<List<Integer>, List<Integer>> expectedGsubTableRawData = getExpectedGsubTableRawData(
                     String.format(templatePathToFile, featureName));
             ScriptFeature scriptFeature = new MapBackedScriptFeature(featureName,
                     expectedGsubTableRawData);
@@ -85,10 +86,10 @@ class GlyphSubstitutionTableTest
 
     }
 
-    private Map<List<Integer>, Integer> getExpectedGsubTableRawData(String pathToResource)
+    private Map<List<Integer>, List<Integer>> getExpectedGsubTableRawData(String pathToResource)
             throws IOException
     {
-        Map<List<Integer>, Integer> gsubData = new HashMap<>();
+        Map<List<Integer>, List<Integer>> gsubData = new HashMap<>();
 
         try (BufferedReader br = new BufferedReader(
              new InputStreamReader(
@@ -126,7 +127,7 @@ class GlyphSubstitutionTableTest
                 }
 
                 Integer newGlyphId = Integer.valueOf(lineSplittedByKeyValue[1]);
-                gsubData.put(oldGlyphIds, newGlyphId);
+                gsubData.put(oldGlyphIds, Collections.singletonList(newGlyphId));
             }
         }
         return gsubData;
