@@ -55,21 +55,6 @@
       <developerConnection>scm:svn:https://svn.apache.org/repos/asf/pdfbox/tags/3.0.4</developerConnection>
       <url>https://svn.apache.org/viewvc/pdfbox/tags/3.0.4</url>
   </scm>
-
-  <!-- distribute to Zola internal repo -->
-  <distributionManagement>
-    <repository>
-        <id>deployment</id>
-        <name>Internal Releases</name>
-        <url>https://nexus3.zola.com/nexus/content/repositories/releases/</url>
-    </repository>
-    <snapshotRepository>
-        <id>deployment</id>
-        <name>Internal Releases</name>
-        <url>https://nexus3.zola.com/nexus/content/repositories/snapshots/</url>
-    </snapshotRepository>
-  </distributionManagement>
-
   <build>
     <pluginManagement>
         <plugins>
