@@ -46,6 +46,13 @@ The default build will compile the Java sources and package the binary
 classes into jar packages. See the Maven documentation for all the
 other available build options.
 
+Deploy
+------
+APPLIES TO ZOLA ONLY
+You can deploy the artifacts to the Zola Nexus repository by running:
+
+    mvn clean deploy
+
 Contribute
 ----------
 
