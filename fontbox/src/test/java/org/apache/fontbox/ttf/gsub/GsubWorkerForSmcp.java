@@ -17,55 +17,49 @@
 
 package org.apache.fontbox.ttf.gsub;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.fontbox.ttf.CmapLookup;
+import org.apache.fontbox.ttf.model.GsubData;
+import org.apache.fontbox.ttf.model.ScriptFeature;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.fontbox.ttf.CmapLookup;
-import org.apache.fontbox.ttf.model.GsubData;
-import org.apache.fontbox.ttf.model.ScriptFeature;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 /**
- * 
+ *
  * GSUB worker to test "smcp", code is copied from the latin worker except for the features.
- * 
+ *
  * @author Palash Ray
  * @author Tilman Hausherr
  *
  */
-public class GsubWorkerForSmcp implements GsubWorker
-{
-    private static final Logger LOG = LogManager.getLogger(GsubWorkerForSmcp.class);
+public class GsubWorkerForSmcp implements GsubWorker {
+    private static final Log LOG = LogFactory.getLog(GsubWorkerForAalt.class);
 
     private static final List<String> FEATURES_IN_ORDER = Arrays.asList("smcp");
 
     private final CmapLookup cmapLookup;
     private final GsubData gsubData;
 
-    GsubWorkerForSmcp(CmapLookup cmapLookup, GsubData gsubData)
-    {
+    GsubWorkerForSmcp(CmapLookup cmapLookup, GsubData gsubData) {
         this.cmapLookup = cmapLookup;
         this.gsubData = gsubData;
     }
 
     @Override
-    public List<Integer> applyTransforms(List<Integer> originalGlyphIds)
-    {
+    public List<Integer> applyTransforms(List<Integer> originalGlyphIds) {
         List<Integer> intermediateGlyphsFromGsub = originalGlyphIds;
 
-        for (String feature : FEATURES_IN_ORDER)
-        {
-            if (!gsubData.isFeatureSupported(feature))
-            {
-                LOG.debug("the feature {} was not found", feature);
+        for (String feature : FEATURES_IN_ORDER) {
+            if (!gsubData.isFeatureSupported(feature)) {
+                LOG.debug("the feature " + feature + " was not found");
                 continue;
             }
 
-            LOG.debug("applying the feature {}", feature);
+            LOG.debug("applying the feature " + feature);
 
             ScriptFeature scriptFeature = gsubData.getFeature(feature);
 
@@ -77,36 +71,31 @@ public class GsubWorkerForSmcp implements GsubWorker
     }
 
     private List<Integer> applyGsubFeature(ScriptFeature scriptFeature,
-            List<Integer> originalGlyphs)
-    {
-        if (scriptFeature.getAllGlyphIdsForSubstitution().isEmpty())
-        {
-            LOG.debug("getAllGlyphIdsForSubstitution() for {} is empty",
-                        scriptFeature.getName());
+                                           List<Integer> originalGlyphs) {
+        if (scriptFeature.getAllGlyphIdsForSubstitution().isEmpty()) {
+            LOG.debug("getAllGlyphIdsForSubstitution() for " +
+                    scriptFeature.getName() + " is empty");
             return originalGlyphs;
         }
-        
+
         GlyphArraySplitter glyphArraySplitter = new GlyphArraySplitterRegexImpl(
                 scriptFeature.getAllGlyphIdsForSubstitution());
 
         List<List<Integer>> tokens = glyphArraySplitter.split(originalGlyphs);
         List<Integer> gsubProcessedGlyphs = new ArrayList<>();
 
-        for (List<Integer> chunk : tokens)
-        {
-            if (scriptFeature.canReplaceGlyphs(chunk))
-            {
+        for (List<Integer> chunk : tokens) {
+            if (scriptFeature.canReplaceGlyphs(chunk)) {
                 // gsub system kicks in, you get the glyphId directly
                 List<Integer> replacementForGlyphs = scriptFeature.getReplacementForGlyphs(chunk);
                 gsubProcessedGlyphs.addAll(replacementForGlyphs);
-            }
-            else
-            {
+            } else {
                 gsubProcessedGlyphs.addAll(chunk);
             }
         }
 
-        LOG.debug("originalGlyphs: {}, gsubProcessedGlyphs: {}", originalGlyphs, gsubProcessedGlyphs);
+        LOG.debug("originalGlyphs: " + originalGlyphs + ", gsubProcessedGlyphs: "
+                + gsubProcessedGlyphs);
 
         return gsubProcessedGlyphs;
     }
