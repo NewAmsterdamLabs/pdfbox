@@ -1,0 +1,33 @@
+diff --git a/fontbox/src/main/java/org/apache/fontbox/ttf/gsub/GlyphSubstitutionDataExtractor.java b/fontbox/src/main/java/org/apache/fontbox/ttf/gsub/GlyphSubstitutionDataExtractor.java
+index 79eb5c6f4a..2abb667df3 100644
+--- a/fontbox/src/main/java/org/apache/fontbox/ttf/gsub/GlyphSubstitutionDataExtractor.java
++++ b/fontbox/src/main/java/org/apache/fontbox/ttf/gsub/GlyphSubstitutionDataExtractor.java
+@@ -44,6 +44,7 @@ import org.apache.fontbox.ttf.table.gsub.LookupTypeLigatureSubstitutionSubstForm
+ import org.apache.fontbox.ttf.table.gsub.LookupTypeMultipleSubstitutionFormat1;
+ import org.apache.fontbox.ttf.table.gsub.LookupTypeSingleSubstFormat1;
+ import org.apache.fontbox.ttf.table.gsub.LookupTypeSingleSubstFormat2;
++import org.apache.fontbox.ttf.table.gsub.SequenceTable;
+ 
+ /**
+  * This class has utility methods to extract meaningful GsubData from the highly obfuscated GSUB
+@@ -263,6 +264,20 @@ public class GlyphSubstitutionDataExtractor
+         }
+         // not implemented in 3.0, because the map value isn't a list.
+         // implemented in 4.0, since PDFBOX-5648
++        // Here is Zola's implementation:
++        for (int i = 0; i < coverageTable.getSize(); i++) {
++            int coverageGlyphId = coverageTable.getGlyphId(i);
++            SequenceTable sequenceTable = multipleSubstFormat1Subtable.getSequenceTables()[i];
++
++            // Loop through the substitute glyphs and pick the first one that is not the same as the coverage glyph
++            for (int substituteGlyph : sequenceTable.getSubstituteGlyphIDs()) {
++                if (substituteGlyph != coverageGlyphId) {
++                    putNewSubstitutionEntry(glyphSubstitutionMap, substituteGlyph,
++                            Collections.singletonList(coverageGlyphId));
++                    break;
++                }
++            }
++        }
+     }
+ 
+     private void extractDataFromLigatureSubstitutionSubstFormat1Table(

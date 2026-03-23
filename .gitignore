@@ -5,3 +5,4 @@ bin/
 .project
 .idea/
 *.iml
+.DS_Store
