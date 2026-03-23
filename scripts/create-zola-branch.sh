@@ -7,14 +7,16 @@
 # What it does:
 #   1. Verifies the tag exists on upstream (apache/pdfbox)
 #   2. Fetches the tag and pushes it to origin (our fork)
-#   3. Creates a <version>-zola branch from the tag
-#   4. Applies Zola-specific changes:
+#   3. Ensures we're on the 3.0 branch
+#   4. Creates a <version>-zola branch from the tag
+#   5. Copies scripts/ from 3.0 into the new branch
+#   6. Applies Zola-specific changes:
 #      - Distribution management in parent/pom.xml (Nexus deploy config)
 #      - ZOLA.md documentation
 #      - Deploy instructions in README.md
 #      - Glyph substitution in GlyphSubstitutionDataExtractor.java (via patch)
-#   5. Updates all pom.xml parent versions to <version>-ZOLA
-#   6. Pushes the branch to origin
+#   7. Updates all pom.xml parent versions to <version>-ZOLA
+#   8. Pushes the branch to origin
 #
 # Usage: ./scripts/create-zola-branch.sh <version>
 #   e.g. ./scripts/create-zola-branch.sh 3.0.7
@@ -50,7 +52,14 @@ git fetch upstream tag "${VERSION}"
 echo "==> Pushing tag ${VERSION} to origin..."
 git push origin tag "${VERSION}" 2>/dev/null || echo "    Tag already exists on origin, skipping."
 
-# --- Step 3: Create branch from the tag ---
+# --- Step 3: Ensure we're on 3.0 ---
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$CURRENT_BRANCH" != "3.0" ]]; then
+    echo "ERROR: Must be run from the 3.0 branch (currently on ${CURRENT_BRANCH})."
+    exit 1
+fi
+
+# --- Step 4: Create branch from the tag ---
 echo "==> Creating branch ${BRANCH_NAME} from tag ${VERSION}..."
 if git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
     echo "ERROR: Branch ${BRANCH_NAME} already exists locally."
@@ -59,7 +68,13 @@ if git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
 fi
 git checkout -b "${BRANCH_NAME}" "${VERSION}"
 
-# --- Step 4a: Add Zola distribution management and docs ---
+# --- Step 5: Copy scripts from 3.0 branch ---
+echo "==> Copying scripts from 3.0 branch..."
+git checkout 3.0 -- scripts/
+git add scripts/
+git commit -m "Add Zola scripts from 3.0 branch"
+
+# --- Step 6a: Add Zola distribution management and docs ---
 echo "==> Adding Zola distribution management and documentation..."
 
 # Add distributionManagement block after </scm> in parent/pom.xml
@@ -106,7 +121,7 @@ ZOLA_EOF
 git add parent/pom.xml README.md ZOLA.md
 git commit -m "Add Zola distribution management and documentation"
 
-# --- Step 4b: Apply glyph substitution patch ---
+# --- Step 6b: Apply glyph substitution patch ---
 echo "==> Applying Zola glyph substitution patch..."
 if ! git apply --check "${PATCHES_DIR}/zola-glyph-substitution.patch" 2>/dev/null; then
     echo "    Patch does not apply cleanly. Trying with 3-way merge..."
@@ -117,7 +132,7 @@ fi
 git add fontbox/src/main/java/org/apache/fontbox/ttf/gsub/GlyphSubstitutionDataExtractor.java
 git commit -m "Implement glyph substitution logic in GlyphSubstitutionDataExtractor for Lookup Type 2"
 
-# --- Step 5: Update pom.xml versions ---
+# --- Step 7: Update pom.xml versions ---
 echo "==> Updating pom.xml versions from ${VERSION} to ${VERSION}-ZOLA..."
 
 POM_FILES=(
@@ -148,7 +163,7 @@ done
 git add "${POM_FILES[@]}"
 git commit -m "Update parent version to ${VERSION}-ZOLA in pom.xml"
 
-# --- Step 6: Push to origin ---
+# --- Step 8: Push to origin ---
 echo "==> Pushing ${BRANCH_NAME} to origin..."
 git push -u origin "${BRANCH_NAME}"
 
